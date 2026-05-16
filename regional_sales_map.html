@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Regional Map</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { display: flex; height: 100vh; }
+        #map { flex: 1; }
+        .sidebar { width: 320px; background: white; overflow-y: auto; box-shadow: -2px 0 10px rgba(0,0,0,0.1); }
+        .header { padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; }
+        .header h1 { font-size: 20px; margin-bottom: 5px; }
+        .region-card { padding: 12px 15px; border-bottom: 1px solid #e0e0e0; }
+        .region-name { font-weight: bold; color: #333; margin-bottom: 8px; font-size: 14px; }
+        .stat { display: flex; justify-content: space-between; font-size: 12px; margin: 3px 0; }
+        .label { color: #666; }
+        .value { font-weight: bold; color: #333; }
+        .summary { padding: 15px; background: #f9f9f9; margin: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="map"></div>
+        <div class="sidebar">
+            <div class="header">
+                <h1>📊 Regional Sales Map</h1>
+            </div>
+            <div id="regions"></div>
+            <div class="summary">
+                <div style="font-weight: bold; margin-bottom: 8px;">Total Stats</div>
+                <div class="stat">
+                    <span class="label">Total Sales:</span>
+                    <span class="value">$5,019,265</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Transactions:</span>
+                    <span class="value">1,000</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Avg Sale:</span>
+                    <span class="value">$5,019</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const regions = [{"name": "North", "lat": 28.7041, "lng": 77.1025, "total_sales": 1369612.51, "transactions": 267, "avg_sale": 5129.634868913858, "total_units": 6705}, {"name": "South", "lat": 13.0827, "lng": 80.2707, "total_sales": 1154250.8599999999, "transactions": 226, "avg_sale": 5107.304690265486, "total_units": 5808}, {"name": "East", "lat": 22.5726, "lng": 88.3639, "total_sales": 1259792.9300000002, "transactions": 263, "avg_sale": 4790.087186311787, "total_units": 6356}, {"name": "West", "lat": 19.076, "lng": 72.8777, "total_sales": 1235608.93, "transactions": 244, "avg_sale": 5063.971024590163, "total_units": 6486}];
+        const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'];
+
+        // Initialize map
+        const map = L.map('map').setView([23, 79], 4);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Add markers
+        regions.forEach((region, idx) => {
+            const maxSales = Math.max(...regions.map(r => r.total_sales));
+            const radius = (region.total_sales / maxSales) * 50 + 20;
+            
+            const marker = L.circleMarker([region.lat, region.lng], {
+                radius: radius,
+                fillColor: colors[idx],
+                color: '#333',
+                weight: 2,
+                fillOpacity: 0.7
+            }).addTo(map);
+            
+            marker.bindPopup(`
+                <b>${region.name}</b><br/>
+                Sales: $${region.total_sales.toLocaleString()}<br/>
+                Trans: ${region.transactions}<br/>
+                Avg: $${region.avg_sale.toFixed(0)}
+            `);
+        });
+
+        // Populate sidebar
+        const sidebar = document.getElementById('regions');
+        regions.forEach((region, idx) => {
+            const card = document.createElement('div');
+            card.className = 'region-card';
+            card.innerHTML = `
+                <div class="region-name" style="border-left: 4px solid ${colors[idx]}; padding-left: 10px;">📍 ${region.name}</div>
+                <div class="stat">
+                    <span class="label">Sales:</span>
+                    <span class="value">$${region.total_sales.toLocaleString()}</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Trans:</span>
+                    <span class="value">${region.transactions}</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Avg:</span>
+                    <span class="value">$${region.avg_sale.toFixed(0)}</span>
+                </div>
+            `;
+            sidebar.appendChild(card);
+        });
+    </script>
+</body>
+</html>
